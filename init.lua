@@ -20,6 +20,7 @@ require("packer").startup(function(use)
     --    "svermeulen/vim-easyclip",
     --    requires = {"tpope/vim-repeat"},
     --}
+    use "easymotion/vim-easymotion"
     use {
         "windwp/nvim-autopairs",
         config = function ()
@@ -107,4 +108,29 @@ for i=1, #langServers do
     lspConfig[langServers[i]].setup({
         capabilities = capabilities
     })
+end
+
+local function smartIndent()
+    --https://vi.stackexchange.com/questions/31189/how-can-i-get-the-current-cursor-position-in-lua
+    local currLine, currCol = unpack(vim.api.nvim_win_get_cursor(0))
+    --! => nore
+    vim.api.nvim_command("normal! gg=G")
+    vim.api.nvim_command("normal! " .. currLine .. "G")
+end
+
+local function map(modes, key, value, opts)
+    for i=1, string.len(modes) do
+        local mode = string.sub(modes, i, i)
+        vim.keymap.set(mode, key, value, opts)
+    end
+end
+local keybindings = {
+    {"nov", "F" , "<Plug>(easymotion-Fl)", {}},
+    {"nov", "T" , "<Plug>(easymotion-Tl)", {}},
+    {"nov", "t" , "<Plug>(easymotion-tl)", {}},
+    {"nov", "f" , "<Plug>(easymotion-fl)", {}},
+    {"n", "<a-s-i>", "", {callback=smartIndent}},
+}
+for k, v in pairs(keybindings) do
+    map(v[1], v[2], v[3], v[4])
 end
