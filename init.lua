@@ -16,10 +16,17 @@ for k, v in pairs(options) do
 end
 
 require("packer").startup(function(use)
-    --use {
-    --    "svermeulen/vim-easyclip",
-    --    requires = {"tpope/vim-repeat"},
-    --}
+    use {
+        "gbprod/substitute.nvim",
+        config = function ()
+            require("substitute").setup({
+                range = {
+                    register = '"+'
+                }
+            })
+        end
+    }
+    use "tpope/vim-surround"
     use "easymotion/vim-easymotion"
     use {
         "windwp/nvim-autopairs",
@@ -88,8 +95,8 @@ cmp.setup({
 })
 local cmp_autopairs = require('nvim-autopairs.completion.cmp')
 cmp.event:on(
-  'confirm_done',
-  cmp_autopairs.on_confirm_done()
+'confirm_done',
+cmp_autopairs.on_confirm_done()
 )
 
 local lspSignatureCfg = {
@@ -111,7 +118,6 @@ for i=1, #langServers do
 end
 
 local function smartIndent()
-    --https://vi.stackexchange.com/questions/31189/how-can-i-get-the-current-cursor-position-in-lua
     local currLine, currCol = unpack(vim.api.nvim_win_get_cursor(0))
     --! => nore
     vim.api.nvim_command("normal! gg=G")
@@ -125,11 +131,21 @@ local function map(modes, key, value, opts)
     end
 end
 local keybindings = {
-    {"nov", "F" , "<Plug>(easymotion-Fl)", {}},
-    {"nov", "T" , "<Plug>(easymotion-Tl)", {}},
-    {"nov", "t" , "<Plug>(easymotion-tl)", {}},
-    {"nov", "f" , "<Plug>(easymotion-fl)", {}},
+    {"n", "s", "<cmd>lua require('substitute').operator()<cr>", { noremap = true } },
+    {"x", "s", "<cmd>lua require('substitute').visual()<cr>", { noremap = true }},
+    {"n", "ss", "<cmd>lua require('substitute').line()<cr>", { noremap = true }},
     {"n", "<a-s-i>", "", {callback=smartIndent}},
+    {"xnov", "F" , "<Plug>(easymotion-Fl)", {}},
+    {"xnov", "T" , "<Plug>(easymotion-Tl)", {}},
+    {"xnov", "t" , "<Plug>(easymotion-tl)", {}},
+    {"xnov", "f" , "<Plug>(easymotion-fl)", {}},
+    {"xnv", "<leader>p", '"+p', {noremap=true}},
+    {"xnv", "<leader>y", '"+y', {noremap=true}},
+    {"xnv", "m", 'd', {noremap=true}},
+    {"xnv", "mm", 'dd', {noremap=true}},
+    {"xnv", "c", '"_c', {noremap=true}},
+    {"xnv", "d", '"_d', {noremap=true}},
+    {"xnv", "x", '"_x', {noremap=true}},
 }
 for k, v in pairs(keybindings) do
     map(v[1], v[2], v[3], v[4])
