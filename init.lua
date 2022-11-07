@@ -1,4 +1,5 @@
 local options = {
+    cmdheight= 2,
     hlsearch = false,
     shiftwidth = 4,
     softtabstop = 4,
@@ -91,6 +92,7 @@ cmp.setup({
         { name = 'nvim_lsp' },
         { name = 'buffer' },
         { name = "luasnip" },
+        { name = 'nvim_lsp_signature_help' },
     }),
 })
 local cmp_autopairs = require('nvim-autopairs.completion.cmp')
@@ -101,15 +103,25 @@ cmp_autopairs.on_confirm_done()
 
 local lspSignatureCfg = {
     fix_pos = true,
-    always_trigger = false,
+    always_trigger = true,
     hint_enable = false,
 }
-local lspSignature = require("lsp_signature")
-lspSignature.setup(lspSignatureCfg)
-local function echoDoc()
+require("lsp_signature").setup(lspSignatureCfg)
+local colors = require ( 'ansicolors')
+
+local function isEmptyStr(s)
+    return s == nil or s == ''
 end
+
+function echoDoc()
+    local sig = require("lsp_signature").status_line(100)
+    if isEmptyStr(sig.label) and isEmptyStr(sig.hint) then return
+    else print(sig.label .. "   " .. sig.hint )
+    end
+end
+
 local lspConfig = require("lspconfig")
-local langServers = {"pyright", "sumneko_lua", "clangd", "haskell-language-server"}
+local langServers = {"pyright", "sumneko_lua", "clangd"}
 local capabilities = require("cmp_nvim_lsp").default_capabilities()
 for i=1, #langServers do
     lspConfig[langServers[i]].setup({
@@ -152,4 +164,14 @@ local keybindings = {
 }
 for k, v in pairs(keybindings) do
     map(v[1], v[2], v[3], v[4])
+end
+
+local autocmds = {
+    {{"CursorHoldI, CursorMoved, CursorHold"}, {pattern = "*", callback = function()
+        echoDoc()
+    end,}}
+}
+
+for k, v in pairs(autocmds) do
+    vim.api.nvim_create_autocmd(v[1], v[2])
 end
