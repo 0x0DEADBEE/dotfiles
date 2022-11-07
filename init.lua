@@ -131,6 +131,9 @@ local function map(modes, key, value, opts)
     end
 end
 local keybindings = {
+    {"n", "sx", "<cmd>lua require('substitute.exchange').operator()<cr>", { noremap = true } },
+    {"n", "sxx", "<cmd>lua require('substitute.exchange').line()<cr>", { noremap = true } },
+    {"x", "sx", "<cmd>lua require('substitute.exchange').visual()<cr>", { noremap = true } },
     {"n", "s", "<cmd>lua require('substitute').operator()<cr>", { noremap = true } },
     {"x", "s", "<cmd>lua require('substitute').visual()<cr>", { noremap = true }},
     {"n", "ss", "<cmd>lua require('substitute').line()<cr>", { noremap = true }},
