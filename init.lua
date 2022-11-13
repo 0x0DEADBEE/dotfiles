@@ -112,7 +112,7 @@ local lspSignatureCfg = {
 require("lsp_signature").setup(lspSignatureCfg)
 
 local lspConfig = require("lspconfig")
-local langServers = {"pyright", "sumneko_lua", "clangd"}
+local langServers = {"pyright", "sumneko_lua", "clangd", "gopls"}
 local capabilities = require("cmp_nvim_lsp").default_capabilities()
 for i=1, #langServers do
     lspConfig[langServers[i]].setup({
@@ -153,7 +153,7 @@ local keybindings = {
     {"xnv", "c", '"_c', {noremap=true}},
     {"xnv", "d", '"_d', {noremap=true}},
     {"xnv", "x", '"_x', {noremap=true}},
-    {"i", "<c-v>", '<esc>p<esc>i', {}},
+    {"i", "<c-v>", '<esc>"+p<esc>i', {noremap=true}},
 
 }
 for k, v in pairs(keybindings) do
@@ -164,15 +164,23 @@ local function isempty(s)
     return s == nil or s == ''
 end
 
+
+local util = require('vim.lsp.util')
+
 function echoDoc()
     --print("working")
     if not pcall(require, 'lsp_signature') then return end
     local sig = require("lsp_signature").status_line(100)
-    if isempty(sig.label) and isempty(sig.hint) then return
+    if isempty(sig.label) and isempty(sig.hint) then
+
     else
+        --qui fare pcall
         sig.label = sig.label:gsub("[\n\r]+", " ")
+        sig.doc = sig.doc:gsub("[\n\r]+", " ")
         sig.hint = sig.hint:gsub("[\n\r]+", " ")
-        print(sig.label .. "   " .. sig.hint )
+        if isempty(sig.doc) then print(sig.label .. "" .. sig.hint)
+        else print(sig.label .. "   " .. sig.hint .. " " .. sig.doc)
+	end
     end
 end
 
