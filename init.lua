@@ -1,4 +1,5 @@
 local options = {
+    updatetime=300,
     cmdheight= 4,
     hlsearch = false,
     shiftwidth = 4,
@@ -154,6 +155,18 @@ for k, v in pairs(keybindings) do
     map(v[1], v[2], v[3], v[4])
 end
 
+local function isempty(s)
+    return s == nil or s == ''
+end
+function echoDoc()
+    print("working")
+    if not pcall(require, 'lsp_signature') then return end
+    local sig = require("lsp_signature").status_line(100)
+    if isempty(sig.label) and isempty(sig.hint) then return
+    else print(sig.label .. "   " .. sig.hint )
+    end
+end
+
 local autocmds = {
     {{"CursorHoldI, CursorMoved, CursorHold"}, {pattern = "*", callback = function()
         echoDoc()
@@ -163,18 +176,18 @@ local autocmds = {
 for k, v in pairs(autocmds) do
     vim.api.nvim_create_autocmd(v[1], v[2])
 end
-
-local function isEmptyStr(s)
-    return s == nil or s == ""
-end
-
-function echoDoc()
-    local sig = require("lsp_signature").status_line(200)
-    signature_length = #sig.label
-    sig.label = sig.label:gsub("[\n\r]+", " ")
-    sig.hint = sig.hint:gsub("[\n\r]+", " ")
-    if isEmptyStr(sig.label) and isEmptyStr(sig.hint) then return
-    else print(sig.label .. "   " .. sig.hint )
-    end
-end
-
+--
+--local function isEmptyStr(s)
+--    return s == nil or s == ""
+--end
+--
+--function echoDoc()
+--    local sig = require("lsp_signature").status_line(200)
+--    signature_length = #sig.label
+--    sig.label = sig.label:gsub("[\n\r]+", " ")
+--    sig.hint = sig.hint:gsub("[\n\r]+", " ")
+--    if isEmptyStr(sig.label) and isEmptyStr(sig.hint) then return
+--    else print(sig.label .. "   " .. sig.hint )
+--    end
+--end
+--
