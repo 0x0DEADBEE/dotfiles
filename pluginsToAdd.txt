@@ -1,0 +1,37 @@
+:h nvim_win_set_config()
+https://www.reddit.com/r/neovim/comments/rbt47s/placing_notification_popup_at_bottom_right_corner/
+https://www.reddit.com/r/neovim/comments/nkm1h7/how_to_float_window/
+https://www.reddit.com/r/neovim/comments/ru871v/how_to_change_the_position_of_linting_in/
+https://github.com/MunifTanjim/nui.nvim
+
+https://github.com/gbprod/yanky.nvim
+https://github.com/preservim/tagbar (https://github.com/vim-airline/vim-airline/issues/1993)
+https://github.com/nvim-tree/nvim-tree.lua
+https://github.com/tpope/vim-abolish
+https://github.com/lukas-reineke/indent-blankline.nvim
+https://github.com/vijaymarupudi/nvim-fzf
+https://www.reddit.com/r/neovim/comments/wl7413/winpicknvim_plugin_for_picking_a_window/
+https://github.com/ray-x/navigator.lua
+https://www.reddit.com/r/neovim/comments/uwam94/is_there_an_eldoc_equivalent_for_neovim/
+https://github.com/nvim-treesitter/nvim-treesitter
+https://github.com/jose-elias-alvarez/null-ls.nvim
+https://github.com/mg979?tab=repositories
+https://www.google.com/search?q=suggestions+floating+windows+cover+signature+window+nvim&ei=LrlqY5q1LuuB9u8P6J-16Ac&ved=0ahUKEwiahKfBs5_7AhXrgP0HHehPDX0Q4dUDCA8&uact=5&oq=suggestions+floating+windows+cover+signature+window+nvim&gs_lcp=Cgxnd3Mtd2l6LXNlcnAQAzoLCC4QgAQQsQMQgwE6CAgAELEDEIMBOgsIABCABBCxAxCDAToOCC4QgAQQsQMQgwEQ1AI6EQguEIAEELEDEIMBEMcBENEDOgQIABBDOggIABCABBCxAzoFCAAQgAQ6BwgAELEDEEM6CgguELEDENQCEEM6BQguEIAEOggILhCABBCxAzoKCAAQsQMQgwEQQzoNCAAQgAQQsQMQRhD5AToQCAAQgAQQsQMQgwEQRhD_AToKCAAQgAQQRhD_AToHCAAQgAQQEzoICAAQFhAeEBM6CAgAEBYQHhAPOgYIABAWEB46CAgAEBYQHhAKOgUIIRCgAToKCAAQCBAeEA8QDToHCCEQoAEQCjoECCEQFToICCEQFhAeEB1KBAhNGAFKBAhBGABKBQhAEgExSgQIRhgAUABYvqIBYKCkAWgFcAF4AIABuAGIAY8skgEFNDQuMTaYAQCgAQHAAQE&sclient=gws-wiz-serp
+https://github.com/windwp/nvim-ts-autotag
+https://github.com/SmiteshP/nvim-navic https://github.com/wellle/context.vim
+https://www.reddit.com/r/neovim/comments/n11n33/plugins_alternative_in_lua/
+https://github.com/ray-x/go.nvim
+https://github.com/goolord/alpha-nvim
+https://github.com/anuvyklack/hydra.nvim
+https://stackoverflow.com/questions/9480452/delete-surrounding-whitespace-in-vim
+https://web.archive.org/web/20211015233104/https://github.com/mjlbach/defaults.nvim/blob/master/init.lua
+https://raw.githubusercontent.com/terrortylor/neovim-environment/main/lua/lsp/signature.lua
+https://www.reddit.com/r/neovim/comments/svv2wb/creating_an_excommand_in_lua/
+https://www.google.com/search?q=jump+to+next+diagnostic+lsp&oq=jump+to+next+diagnostic+lsp&aqs=chrome..69i57.9371j0j4&sourceid=chrome&ie=UTF-8
+https://github.com/weizheheng/nvim-workbench
+https://stackoverflow.com/questions/69626845/how-to-change-neovim-command-line-popup-to-horizontal-or-change-direction-keys
+
+https://www.reddit.com/r/neovim/comments/yks92m/things_you_wish_you_have_known_earlier_with_neovim/
+https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md
+https://github.com/neovim/nvim-lspconfig#Suggested-configuration
+https://vi.stackexchange.com/questions/36594/how-do-i-open-an-existing-file-in-a-floating-window

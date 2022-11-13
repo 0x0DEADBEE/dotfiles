@@ -1,5 +1,5 @@
 local options = {
-    cmdheight= 2,
+    cmdheight= 4,
     hlsearch = false,
     shiftwidth = 4,
     softtabstop = 4,
@@ -107,18 +107,6 @@ local lspSignatureCfg = {
     hint_enable = false,
 }
 require("lsp_signature").setup(lspSignatureCfg)
-local colors = require ( 'ansicolors')
-
-local function isEmptyStr(s)
-    return s == nil or s == ''
-end
-
-function echoDoc()
-    local sig = require("lsp_signature").status_line(100)
-    if isEmptyStr(sig.label) and isEmptyStr(sig.hint) then return
-    else print(sig.label .. "   " .. sig.hint )
-    end
-end
 
 local lspConfig = require("lspconfig")
 local langServers = {"pyright", "sumneko_lua", "clangd"}
@@ -175,3 +163,18 @@ local autocmds = {
 for k, v in pairs(autocmds) do
     vim.api.nvim_create_autocmd(v[1], v[2])
 end
+
+local function isEmptyStr(s)
+    return s == nil or s == ""
+end
+
+function echoDoc()
+    local sig = require("lsp_signature").status_line(200)
+    signature_length = #sig.label
+    sig.label = sig.label:gsub("[\n\r]+", " ")
+    sig.hint = sig.hint:gsub("[\n\r]+", " ")
+    if isEmptyStr(sig.label) and isEmptyStr(sig.hint) then return
+    else print(sig.label .. "   " .. sig.hint )
+    end
+end
+
