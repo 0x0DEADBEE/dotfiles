@@ -3,6 +3,7 @@ https://www.reddit.com/r/neovim/comments/rbt47s/placing_notification_popup_at_bo
 https://www.reddit.com/r/neovim/comments/nkm1h7/how_to_float_window/
 https://www.reddit.com/r/neovim/comments/ru871v/how_to_change_the_position_of_linting_in/
 https://github.com/MunifTanjim/nui.nvim
+https://stackoverflow.com/questions/69626845/how-to-change-neovim-command-line-popup-to-horizontal-or-change-direction-keys
 
 https://github.com/gbprod/yanky.nvim
 https://github.com/preservim/tagbar (https://github.com/vim-airline/vim-airline/issues/1993)
@@ -12,7 +13,7 @@ https://github.com/lukas-reineke/indent-blankline.nvim
 https://github.com/vijaymarupudi/nvim-fzf
 https://www.reddit.com/r/neovim/comments/wl7413/winpicknvim_plugin_for_picking_a_window/
 https://github.com/ray-x/navigator.lua
-https://www.reddit.com/r/neovim/comments/uwam94/is_there_an_eldoc_equivalent_for_neovim/
+https://www.reddit.com/r/neovim/comments/uwam94/is_there_an_eldoc_equivalent_for_neovim/ https://www.reddit.com/r/neovim/comments/uwycp6/first_neovim_plugin_show_go_signatures_in_echo/
 https://github.com/nvim-treesitter/nvim-treesitter
 https://github.com/jose-elias-alvarez/null-ls.nvim
 https://github.com/mg979?tab=repositories
