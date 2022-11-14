@@ -2,7 +2,7 @@ local options = {
     showmode = false, --in this way, <esc> doesn't affect echo area
     pumheight = 7,
     updatetime=300,
-    cmdheight= 4,
+    cmdheight= 1,
     hlsearch = false,
     shiftwidth = 4,
     softtabstop = 4,
@@ -20,6 +20,15 @@ for k, v in pairs(options) do
 end
 
 require("packer").startup(function(use)
+    use "https://github.com/nvim-treesitter/nvim-treesitter"
+    use "https://github.com/lukas-reineke/indent-blankline.nvim"
+    use "https://github.com/hoelzro/lua-term"
+    use {
+        'numToStr/Comment.nvim',
+        config = function()
+            require('Comment').setup()
+        end
+    }
     use {
         "gbprod/substitute.nvim",
         config = function ()
@@ -120,6 +129,12 @@ for i=1, #langServers do
     })
 end
 
+require("indent_blankline").setup {
+    space_char_blankline = " ",
+    show_current_context = true,
+    show_current_context_start = true,
+}
+
 local function smartIndent()
     local currLine, currCol = unpack(vim.api.nvim_win_get_cursor(0))
     --! => nore
@@ -146,8 +161,9 @@ local keybindings = {
     {"xnov", "t" , "<Plug>(easymotion-tl)", {}},
     {"xnov", "f" , "<Plug>(easymotion-fl)", {}},
     {"xnv", "<leader>p", '"+p', {noremap=true}},
-    {"xnv", "y", '"+y', {noremap=true}},
-    {"xnv", "yy", '^"+yg_', {noremap=true}},
+    {"xnv", "<leader>y", '"+y', {noremap=true}},
+    --{"xnv", "y", '"+y', {noremap=true}},
+    --{"xnv", "yy", '^"+yg_', {noremap=true}},
     {"xnv", "m", 'd', {noremap=true}},
     {"xnv", "mm", 'dd', {noremap=true}},
     {"xnv", "c", '"_c', {noremap=true}},
@@ -166,26 +182,54 @@ end
 
 
 local util = require('vim.lsp.util')
-
+ local term   = require 'term'
+local colors = term.colors -- or require 'term.colors'
 function echoDoc()
     --print("working")
-    if not pcall(require, 'lsp_signature') then return end
-    local sig = require("lsp_signature").status_line(100)
-    if isempty(sig.label) and isempty(sig.hint) then
-
+    if not pcall(require, 'lsp_signature') then
+        local params = util.make_position_params()
+        vim.lsp.buf_request(0, 'textDocument/hover', params, function(_, result, ctx)
+            if not (result and result.contents and result.contents.value) then
+                -- vim.notify('')
+                print('')
+                return
+            end
+            -- vim.notify(vim.inspect(result))
+            -- vim.notify(tostring(result.contents))
+            -- vim.notify(result.contents.value)
+            -- max 200 chars
+            result.contents.value = result.contents.value:gsub("[\n\r]+", " ")
+            result.contents.value = result.contents.value:gsub("[\\]+", "")
+            print( result.contents.value )
+        end)
     else
-        --qui fare pcall
-        sig.label = sig.label:gsub("[\n\r]+", " ")
-        sig.doc = sig.doc:gsub("[\n\r]+", " ")
-        sig.hint = sig.hint:gsub("[\n\r]+", " ")
-        if isempty(sig.doc) then print(sig.label .. "" .. sig.hint)
-        else print(sig.label .. "   " .. sig.hint .. " " .. sig.doc)
-	end
+        local sig = require("lsp_signature").status_line(100)
+        if isempty(sig.label) and isempty(sig.hint) then
+            local params = util.make_position_params()
+            vim.lsp.buf_request(0, 'textDocument/hover', params, function(_, result, ctx)
+                if not (result and result.contents and result.contents.value) then
+                    -- vim.notify('')
+                    print('')
+                    return
+                end
+                result.contents.value = result.contents.value:gsub("[\n\r]+", " ")
+                result.contents.value = result.contents.value:gsub("[\\]+", "")
+                print( result.contents.value )
+            end)
+        else
+            --qui fare pcall
+            sig.label = sig.label:gsub("[\n\r]+", " ")
+            -- sig.doc = sig.doc:gsub("[\n\r]+", " ")
+            sig.hint = sig.hint:gsub("[\n\r]+", " ")
+            print(sig.label .. "" .. sig.hint)
+            -- else print(sig.label .. "   " .. sig.hint .. " " .. sig.doc)
+        end
     end
 end
 
 local autocmds = {
     {{"CursorHoldI, CursorMoved, CursorHold"}, {pattern = "*", callback = function()
+    -- {{"CursorMoved, CursorMovedI, CursorHoldI"}, {pattern = "*", callback = function()
         echoDoc()
     end,}}
 }
