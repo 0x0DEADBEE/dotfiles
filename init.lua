@@ -1,7 +1,7 @@
 local options = {
     showmode = false, --in this way, <esc> doesn't affect echo area
     pumheight = 7,
-    updatetime=300,
+    updatetime=200,
     cmdheight= 1,
     hlsearch = false,
     shiftwidth = 4,
@@ -182,7 +182,7 @@ end
 
 
 local util = require('vim.lsp.util')
- local term   = require 'term'
+local term   = require 'term'
 local colors = term.colors -- or require 'term.colors'
 function echoDoc()
     --print("working")
@@ -228,10 +228,17 @@ function echoDoc()
 end
 
 local autocmds = {
-    {{"CursorHoldI, CursorMoved, CursorHold"}, {pattern = "*", callback = function()
-    -- {{"CursorMoved, CursorMovedI, CursorHoldI"}, {pattern = "*", callback = function()
+    --CursorMoved and CursorHold then it works solely the echoDoc 
+    -- {{"CursorMoved, CursorHold"}, {pattern = "*", callback = function()
+    {{"CursorHold, CursorHoldI"}, {pattern = "*", callback = function()
+        -- {{"CursorMoved, CursorMovedI, CursorHoldI"}, {pattern = "*", callback = function()
+        echoDoc()
+    end,}},
+        {{"CursorHoldI"}, {pattern = "*", callback = function()
+        -- {{"CursorMoved, CursorMovedI, CursorHoldI"}, {pattern = "*", callback = function()
         echoDoc()
     end,}}
+
 }
 
 for k, v in pairs(autocmds) do
