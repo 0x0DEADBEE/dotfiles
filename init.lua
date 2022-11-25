@@ -19,6 +19,8 @@ for k, v in pairs(options) do
     vim.opt[k] = v
 end
 
+vim.g.copilot_no_tab_map = true
+vim.api.nvim_set_keymap("i", "<C-e>", 'copilot#Accept("<CR>")', { silent = true, expr = true })
 require("packer").startup(function(use)
     use "https://github.com/nvim-treesitter/nvim-treesitter"
     use "https://github.com/lukas-reineke/indent-blankline.nvim"
@@ -81,31 +83,31 @@ cmp.setup({
         ['<C-f>'] = cmp.mapping.scroll_docs(4),
         ['<CR>'] = cmp.mapping.confirm({ select = true }),
         ['<C-e>'] = cmp.mapping.close(), --exit
-        ['<Tab>'] = cmp.mapping(function(fallback)
-            if cmp.visible() then
-                cmp.select_next_item()
-            elseif luasnip.expand_or_jumpable() then
-                luasnip.expand_or_jump()
-            else
-                fallback()
-            end
-        end, {'i', 's'}),
-        ['<S-Tab>'] = cmp.mapping(function(fallback)
-            if cmp.visible() then
-                cmp.select_prev_item()
-            elseif luasnip.jumpable(-1) then
-                luasnip.jump(-1)
-            else
-                fallback()
-            end
-        end, {'i', 's'}),
-    }),
-    sources = cmp.config.sources({
-        { name = 'nvim_lsp' },
-        { name = 'buffer' },
-        { name = "luasnip" },
-        { name = 'nvim_lsp_signature_help' },
-    }),
+    ['<Tab>'] = cmp.mapping(function(fallback)
+        if cmp.visible() then
+            cmp.select_next_item()
+        elseif luasnip.expand_or_jumpable() then
+            luasnip.expand_or_jump()
+        else
+            fallback()
+        end
+    end, {'i', 's'}),
+    ['<S-Tab>'] = cmp.mapping(function(fallback)
+        if cmp.visible() then
+            cmp.select_prev_item()
+        elseif luasnip.jumpable(-1) then
+            luasnip.jump(-1)
+        else
+            fallback()
+        end
+    end, {'i', 's'}),
+}),
+sources = cmp.config.sources({
+    { name = 'nvim_lsp' },
+    { name = 'buffer' },
+    { name = "luasnip" },
+    { name = 'nvim_lsp_signature_help' },
+}),
 })
 local cmp_autopairs = require('nvim-autopairs.completion.cmp')
 cmp.event:on(
@@ -221,7 +223,8 @@ function echoDoc()
             sig.label = sig.label:gsub("[\n\r]+", " ")
             -- sig.doc = sig.doc:gsub("[\n\r]+", " ")
             sig.hint = sig.hint:gsub("[\n\r]+", " ")
-            print(sig.label .. "" .. sig.hint)
+            print[[\e[31mTest]]
+            -- print(sig.label .. "" .. sig.hint)
             -- else print(sig.label .. "   " .. sig.hint .. " " .. sig.doc)
         end
     end
@@ -230,17 +233,17 @@ end
 local autocmds = {
     --CursorMoved and CursorHold then it works solely the echoDoc 
     -- {{"CursorMoved, CursorHold"}, {pattern = "*", callback = function()
-    {{"CursorHold, CursorHoldI"}, {pattern = "*", callback = function()
-        -- {{"CursorMoved, CursorMovedI, CursorHoldI"}, {pattern = "*", callback = function()
-        echoDoc()
-    end,}},
-        {{"CursorHoldI"}, {pattern = "*", callback = function()
-        -- {{"CursorMoved, CursorMovedI, CursorHoldI"}, {pattern = "*", callback = function()
-        echoDoc()
-    end,}}
+        {{"CursorMoved"}, {pattern = "*", callback = function()
+            -- {{"CursorMoved, CursorMovedI, CursorHoldI"}, {pattern = "*", callback = function()
+                echoDoc()
+            end,}},
+            {{"CursorHoldI"}, {pattern = "*", callback = function()
+                -- {{"CursorMoved, CursorMovedI, CursorHoldI"}, {pattern = "*", callback = function()
+                    echoDoc()
+                end,}}
 
-}
+            }
 
-for k, v in pairs(autocmds) do
-    vim.api.nvim_create_autocmd(v[1], v[2])
-end
+            for k, v in pairs(autocmds) do
+                vim.api.nvim_create_autocmd(v[1], v[2])
+            end
