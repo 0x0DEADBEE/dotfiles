@@ -83,31 +83,31 @@ cmp.setup({
         ['<C-f>'] = cmp.mapping.scroll_docs(4),
         ['<CR>'] = cmp.mapping.confirm({ select = true }),
         ['<C-e>'] = cmp.mapping.close(), --exit
-    ['<Tab>'] = cmp.mapping(function(fallback)
-        if cmp.visible() then
-            cmp.select_next_item()
-        elseif luasnip.expand_or_jumpable() then
-            luasnip.expand_or_jump()
-        else
-            fallback()
-        end
-    end, {'i', 's'}),
-    ['<S-Tab>'] = cmp.mapping(function(fallback)
-        if cmp.visible() then
-            cmp.select_prev_item()
-        elseif luasnip.jumpable(-1) then
-            luasnip.jump(-1)
-        else
-            fallback()
-        end
-    end, {'i', 's'}),
-}),
-sources = cmp.config.sources({
-    { name = 'nvim_lsp' },
-    { name = 'buffer' },
-    { name = "luasnip" },
-    { name = 'nvim_lsp_signature_help' },
-}),
+        ['<Tab>'] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+                cmp.select_next_item()
+            elseif luasnip.expand_or_jumpable() then
+                luasnip.expand_or_jump()
+            else
+                fallback()
+            end
+        end, {'i', 's'}),
+        ['<S-Tab>'] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+                cmp.select_prev_item()
+            elseif luasnip.jumpable(-1) then
+                luasnip.jump(-1)
+            else
+                fallback()
+            end
+        end, {'i', 's'}),
+    }),
+    sources = cmp.config.sources({
+        { name = 'nvim_lsp' },
+        { name = 'buffer' },
+        { name = "luasnip" },
+        { name = 'nvim_lsp_signature_help' },
+    }),
 })
 local cmp_autopairs = require('nvim-autopairs.completion.cmp')
 cmp.event:on(
@@ -150,6 +150,21 @@ local function map(modes, key, value, opts)
         vim.keymap.set(mode, key, value, opts)
     end
 end
+
+local function SuggestOneCharacter()
+  local suggestion = vim.fn['copilot#Accept']("")
+  local bar = vim.fn['copilot#TextQueuedForInsertion']()
+  return bar:sub(1, 1)
+end
+local function SuggestOneWord()
+  local suggestion = vim.fn['copilot#Accept']("")
+  local bar = vim.fn['copilot#TextQueuedForInsertion']()
+  return vim.fn.split(bar,  [[[ .]\zs]])[1]
+end
+
+local keymap = vim.keymap.set
+-- keymap('i', '<C-l>', SuggestOneCharacter, {expr = true, remap = false})
+keymap('i', '<C-l>', SuggestOneWord, {expr = true, remap = false})
 local keybindings = {
     {"n", "sx", "<cmd>lua require('substitute.exchange').operator()<cr>", { noremap = true } },
     {"n", "sxx", "<cmd>lua require('substitute.exchange').line()<cr>", { noremap = true } },
@@ -172,7 +187,6 @@ local keybindings = {
     {"xnv", "d", '"_d', {noremap=true}},
     {"xnv", "x", '"_x', {noremap=true}},
     {"i", "<c-v>", '<esc>"+p<esc>i', {noremap=true}},
-
 }
 for k, v in pairs(keybindings) do
     map(v[1], v[2], v[3], v[4])
@@ -233,17 +247,17 @@ end
 local autocmds = {
     --CursorMoved and CursorHold then it works solely the echoDoc 
     -- {{"CursorMoved, CursorHold"}, {pattern = "*", callback = function()
-        {{"CursorMoved"}, {pattern = "*", callback = function()
-            -- {{"CursorMoved, CursorMovedI, CursorHoldI"}, {pattern = "*", callback = function()
-                echoDoc()
-            end,}},
-            {{"CursorHoldI"}, {pattern = "*", callback = function()
-                -- {{"CursorMoved, CursorMovedI, CursorHoldI"}, {pattern = "*", callback = function()
-                    echoDoc()
-                end,}}
+    {{"CursorMoved"}, {pattern = "*", callback = function()
+        -- {{"CursorMoved, CursorMovedI, CursorHoldI"}, {pattern = "*", callback = function()
+        echoDoc()
+    end,}},
+    {{"CursorHoldI"}, {pattern = "*", callback = function()
+        -- {{"CursorMoved, CursorMovedI, CursorHoldI"}, {pattern = "*", callback = function()
+        echoDoc()
+    end,}}
 
-            }
+}
 
-            for k, v in pairs(autocmds) do
-                vim.api.nvim_create_autocmd(v[1], v[2])
-            end
+for k, v in pairs(autocmds) do
+    vim.api.nvim_create_autocmd(v[1], v[2])
+end
