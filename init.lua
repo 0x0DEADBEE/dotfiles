@@ -1,120 +1,165 @@
-local options = {
-    hlsearch = false,
-    shiftwidth = 4,
-    softtabstop = 4,
+local lfs = require("lfs")
+require('packer').startup(function(use)
+    use "hrsh7th/cmp-buffer"
+    use "hrsh7th/nvim-cmp"
+    use "hrsh7th/cmp-nvim-lsp"
+    use "https://gitlab.com/yorickpeterse/nvim-window.git"
+    use "folke/trouble.nvim"
+    use "williamboman/mason.nvim"
+    use "neovim/nvim-lspconfig"
+    use "nvim-tree/nvim-tree.lua"
+    use "nvim-treesitter/nvim-treesitter"
+    use "easymotion/vim-easymotion"
+    use "github/copilot.vim"
+    use "wbthomason/packer.nvim"
+    use "preservim/tagbar" -- exuberant-ctags
+end)
+require("trouble").setup({
+    icons = false,
+    fold_open = "",
+    fold_closed = "",
+    indent_lines = true,
+    signs = {
+        error = "E",
+        warning = "W",
+        hint = "H",
+        information = "I",
+        other = "O",
+    },
+}) --TODO refresh
+local cmp = require("cmp") -- TODO event listening
+cmp.setup({
+    mapping = {
+        ["<Tab>"] = function(fallback)
+            if cmp.visible() then
+                cmp.select_next_item()
+            else
+                fallback()
+            end
+        end,
+        ["<S-Tab>"] = function(fallback)
+            if cmp.visible() then
+                cmp.select_prev_item()
+            else
+                fallback()
+            end
+        end,
+        ["<CR>"] = function(fallback)
+            if cmp.visible() then
+                cmp.confirm({
+                    behavior = cmp.ConfirmBehavior.Replace, -- do not reinsert the text of the completion you've already typed when you confirm
+                    select = true, -- <CR> accepts first completion
+                })
+            else
+                fallback()
+            end
+        end,
+        ["<C-Up>"] = function(fallback)
+            if cmp.visible() then
+                cmp.scroll_docs(-4)
+            else
+                fallback()
+            end
+        end,
+        ["<C-Down>"] = function(fallback)
+            if cmp.visible() then
+                cmp.scroll_docs(4)
+            else
+                fallback()
+            end
+        end,
+    },
+    sources = {
+        {name = "nvim_lsp"},
+        {name = "buffer"},
+    },
+})
+local lspconfig = require("lspconfig")
+local servers = {"sumneko_lua", "pyright"}
+for _, v in pairs(servers) do
+    lspconfig[v].setup({
+        capabilities = vim.tbl_extend("force", lspconfig.util.default_config.capabilities, require("cmp_nvim_lsp").default_capabilities()),
+    })
+end
+require("mason").setup()
+require("nvim-treesitter.configs").setup({
+    ensure_installed = {"lua", "python"}, --parsers
+    indent = {enable = true},
+    --highlight = {enable = true}, --"I get query error: invalid node type at position" paragraph. Syntax highlighting 
+})
+require("nvim-tree").setup({
+    open_on_setup_file = true, -- focus on file window rather than nvim-tree
+    view = {
+        relativenumber = true,
+        number = true,
+    },
+    renderer = {
+        highlight_opened_files = "names",
+        icons = {-- To disable the display of icons see |renderer.icons.show|
+            show = {
+                git = true,
+                folder = false,
+                file = false,
+                folder_arrow = false,
+            },
+        },
+    },
+    diagnostics = {
+        enable = true,
+        icons = {
+            hint = "H",
+            info = "I",
+            warning = "W",
+            error = "E",
+        },
+    },
+})
+-- config centered on github copilot
+local options = { -- TODO negative scrolloff
+    cursorline = true,
+    cursorlineopt = "screenline",
+    filetype = "on", --turned on filetype detection
+    foldmethod = "expr",
+    foldexpr = "nvim_treesitter#foldexpr()",
+    foldnestmax = 1,
+    clipboard = vim.opt.clipboard + "unnamedplus" + "unnamed", --xclip required
     expandtab = true,
-    tabstop = 4,
-    scrolloff = 999,
-    clipboard = vim.opt.clipboard + "unnamedplus" + "unnamed",
+    hlsearch = false,
     iskeyword = vim.opt.iskeyword + "-" + "_",
-    completeopt = vim.opt.completeopt + "menu" + "menuone",
+    number = true,
+    pumheight = 7,
     relativenumber = true,
-    number = true
+    scrolloff = 999,
+    shiftwidth = 4, -- Number of spaces to use for each step of (auto)indent
+    showmode = false,
+    smartindent = true, -- Do smart autoindenting when starting a new line
+    softtabstop = 4, -- Number of spaces that a <Tab> counts for while performing editing operations
+    tabstop = 4, -- Number of spaces that a <Tab> in the file counts for
+    updatetime = 200,
 }
 for k, v in pairs(options) do
     vim.opt[k] = v
 end
-
-require("packer").startup(function(use)
-    use {
-        "gbprod/substitute.nvim",
-        config = function ()
-            require("substitute").setup({
-                range = {
-                    register = '"+'
-                }
-            })
-        end
+local globals = {
+    tagbar_show_linenumbers = 2, -- show relative line numbers in tagbar window
+    copilot_no_tab_map = true,
+    tagbar_show_tag_linenumbers = 1, -- show absolute line number of tag in the code
+    tagbar_show_visibility = 1, -- show whether a tag is Publ, Priv or Prot
+    tagbar_visibility_symbols = {
+        public = "PUBL ",
+        protected = "PROT ",
+        private = "PRIV ",
     }
-    use "tpope/vim-surround"
-    use "easymotion/vim-easymotion"
-    use {
-        "windwp/nvim-autopairs",
-        config = function ()
-            require('nvim-autopairs').setup({
-                enable_check_bracket_line = true,
-                ignored_next_char = "[%w%.]",
-            })
-        end
-    }
-    use {
-        "williamboman/mason.nvim",
-        config = function()
-            require("mason").setup()
-        end
-    }
-    use "wbthomason/packer.nvim"
-    use "neovim/nvim-lspconfig"
-    use {
-        "hrsh7th/nvim-cmp",
-        "hrsh7th/cmp-nvim-lsp"
-    }
-    use "hrsh7th/cmp-buffer"
-    use "ray-x/lsp_signature.nvim"
-    --use "saadparwaiz1/cmp_luasnip"
-    use "L3MON4D3/LuaSnip"
-end)
-
-local luasnip = require('luasnip')
-local cmp = require("cmp")
-cmp.setup({
-    snippet = {
-        expand = function(args)
-            luasnip.lsp_expand(args.body)
-        end
-    },
-    mapping = cmp.mapping.preset.insert({
-        ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-        ['<C-f>'] = cmp.mapping.scroll_docs(4),
-        ['<CR>'] = cmp.mapping.confirm({ select = true }),
-        ['<C-e>'] = cmp.mapping.close(), --exit
-        ['<Tab>'] = cmp.mapping(function(fallback)
-            if cmp.visible() then
-                cmp.select_next_item()
-            elseif luasnip.expand_or_jumpable() then
-                luasnip.expand_or_jump()
-            else
-                fallback()
-            end
-        end, {'i', 's'}),
-        ['<S-Tab>'] = cmp.mapping(function(fallback)
-            if cmp.visible() then
-                cmp.select_prev_item()
-            elseif luasnip.jumpable(-1) then
-                luasnip.jump(-1)
-            else
-                fallback()
-            end
-        end, {'i', 's'}),
-    }),
-    sources = cmp.config.sources({
-        { name = 'nvim_lsp' },
-        { name = 'buffer' },
-        { name = "luasnip" },
-    }),
-})
-local cmp_autopairs = require('nvim-autopairs.completion.cmp')
-cmp.event:on(
-'confirm_done',
-cmp_autopairs.on_confirm_done()
-)
-
-local lspSignatureCfg = {
-    fix_pos = true,
-    always_trigger = false,
-    hint_enable = false,
 }
-local lspSignature = require("lsp_signature")
-lspSignature.setup(lspSignatureCfg)
-local function echoDoc()
+for k, v in pairs(globals) do
+    vim.g[k] = v
 end
-local lspConfig = require("lspconfig")
-local langServers = {"pyright", "sumneko_lua", "clangd", "haskell-language-server"}
-local capabilities = require("cmp_nvim_lsp").default_capabilities()
-for i=1, #langServers do
-    lspConfig[langServers[i]].setup({
-        capabilities = capabilities
-    })
+local speed_coding = {"q", "w", "qa", "wa", "q!", "w!", "qa!", "wa!"} -- TODO define commands
+-- partiallly accept GitHub copilot suggestion, word by word.
+local function partiallyAccept()
+    local _ = vim.fn['copilot#Accept']("")
+    local suggestion = vim.fn['copilot#TextQueuedForInsertion']()
+    return vim.fn.split(suggestion,  [[[ .\(\)\\\/]\zs]])[1] -- stop accepting the word/completion when we run into : dot, space, parenthesis, slash, backslash
 end
 
 local function smartIndent()
@@ -123,33 +168,60 @@ local function smartIndent()
     vim.api.nvim_command("normal! gg=G")
     vim.api.nvim_command("normal! " .. currLine .. "G")
 end
+-- TODO indent mode
+local keymaps = { -- :h modes
+    {"i", "<C-c>", 'copilot#Accept("<C-c>")', {silent = true, expr = true}},
+    {"nv", "<c-w>", "<cmd>:lua require('nvim-window').pick()<CR>", {}},
+    {"nv", "<leader>p", '"+p', {noremap=true}}, --xclip?
+    {"nv", "<leader>y", '"+y', {noremap=true}},
+    {"nv", "c", '"_c', {noremap=true}},
+    {"nv", "d", '"_d', {noremap=true}},
+    {"nv", "x", '"_x', {noremap=true}},
+    {"i", "<c-l>", partiallyAccept, {expr=true}},
+    {"n", "<c-f>", smartIndent, {}},
+    {"n", "<c-d>", function()
+        updateLSP(lfs.currentdir(), 1)
+        vim.api.nvim_command("Trouble workspace_diagnostics")
+    end, {}},
+    {"nov", "F" , "<Plug>(easymotion-Fl)", {}},
+    {"nov", "T" , "<Plug>(easymotion-Tl)", {}},
+    {"nov", "t" , "<Plug>(easymotion-tl)", {}},
+    {"nov", "f" , "<Plug>(easymotion-fl)", {}},
 
-local function map(modes, key, value, opts)
+}
+
+local function keymap(modes, key, value, opts)
     for i=1, string.len(modes) do
         local mode = string.sub(modes, i, i)
         vim.keymap.set(mode, key, value, opts)
     end
 end
-local keybindings = {
-    {"n", "sx", "<cmd>lua require('substitute.exchange').operator()<cr>", { noremap = true } },
-    {"n", "sxx", "<cmd>lua require('substitute.exchange').line()<cr>", { noremap = true } },
-    {"x", "sx", "<cmd>lua require('substitute.exchange').visual()<cr>", { noremap = true } },
-    {"n", "s", "<cmd>lua require('substitute').operator()<cr>", { noremap = true } },
-    {"x", "s", "<cmd>lua require('substitute').visual()<cr>", { noremap = true }},
-    {"n", "ss", "<cmd>lua require('substitute').line()<cr>", { noremap = true }},
-    {"n", "<a-s-i>", "", {callback=smartIndent}},
-    {"xnov", "F" , "<Plug>(easymotion-Fl)", {}},
-    {"xnov", "T" , "<Plug>(easymotion-Tl)", {}},
-    {"xnov", "t" , "<Plug>(easymotion-tl)", {}},
-    {"xnov", "f" , "<Plug>(easymotion-fl)", {}},
-    {"xnv", "<leader>p", '"+p', {noremap=true}},
-    {"xnv", "<leader>y", '"+y', {noremap=true}},
-    {"xnv", "m", 'd', {noremap=true}},
-    {"xnv", "mm", 'dd', {noremap=true}},
-    {"xnv", "c", '"_c', {noremap=true}},
-    {"xnv", "d", '"_d', {noremap=true}},
-    {"xnv", "x", '"_x', {noremap=true}},
+
+for _, v in pairs(keymaps) do
+    keymap(unpack(v))
+end
+function updateLSP(path, depth)
+    if depth == 0 then
+        return
+    end
+    for file in lfs.dir(path) do 
+        local f = path..'/'..file
+        if file ~= "." and file ~= ".." and lfs.attributes(f).mode ~= "directory" then
+            vim.cmd("vs " .. file)
+            vim.cmd("close")
+        end
+    end
+    vim.cmd("NvimTreeRefresh")
+end
+local all_files = {"*.py", "*.lua"}
+local autocmds = { -- TOSEE https://stackoverflow.com/questions/3837933/autowrite-when-changing-tab-in-vim
+    -- TODO check if NvimTree window is alone then quit
+    {{"TabNew"}, {pattern = all_files, command=":TagbarOpen"}},
+    {{"TabNew"}, {pattern = "*", command=":NvimTreeOpen"}},
+    {{"VimEnter"}, {pattern =  all_files, command=":NvimTreeOpen"}},
+    {{"VimEnter"}, {pattern = all_files, command=":TagbarOpen"}},
+    {{"CursorHoldI"}, {pattern = all_files, command=":TagbarForceUpdate"}},
 }
-for k, v in pairs(keybindings) do
-    map(v[1], v[2], v[3], v[4])
+for _, v in pairs(autocmds) do
+    vim.api.nvim_create_autocmd(unpack(v))
 end
