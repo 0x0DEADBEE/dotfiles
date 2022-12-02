@@ -1,5 +1,6 @@
 local lfs = require("lfs")
 require('packer').startup(function(use)
+    use "c60cb859/bufMov.nvim"
     use "ray-x/lsp_signature.nvim"
     use "hrsh7th/cmp-buffer"
     use "hrsh7th/nvim-cmp"
@@ -87,7 +88,7 @@ cmp.setup({
     },
 })
 local lspconfig = require("lspconfig")
-local servers = {"sumneko_lua", "pyright", "clangd"}
+local servers = {"sumneko_lua", "pyright", "clangd", "gopls"}
 for _, v in pairs(servers) do
     lspconfig[v].setup({
         capabilities = vim.tbl_extend("force", lspconfig.util.default_config.capabilities, require("cmp_nvim_lsp").default_capabilities()),
@@ -210,20 +211,21 @@ function echoDef(cmd)
     vim.api.nvim_command("normal! " .. currLine .. "G")
     vim.api.nvim_command("normal! 0")
     vim.api.nvim_command("normal! " .. currCol .. "l")
-    vim.api.nvim_command("normal! " .. cmd)
-    vim.api.nvim_command("set scrolloff=0")
-    vim.api.nvim_command("normal! zt")
-    vim.api.nvim_set_current_win(currWin)
+    vim.api.nvim_command(cmd)
+    --vim.api.nvim_command("set scrolloff=0")
+    --vim.api.nvim_command("normal! zt")
+    ----vim.api.nvim_command(":MoveBufferLeft")
+    --vim.api.nvim_set_current_win(currWin)
 end
 
 -- TODO indent mode
 local keymaps = { -- :h modes
     {"n", "gy", function()
-        echoDef("<space>D")
+        echoDef(":lua vim.lsp.buf.type_definition()")
     end, {}},
     {"n", "gr", vim.lsp.buf.references, {}},
     {"n", "gd", function()
-        echoDef("gd")
+        echoDef(":lua vim.lsp.buf.definition()")
     end, {}},
     {"n", "K", vim.lsp.buf.hover, {}},
     {"i", "<C-c>", 'copilot#Accept("<C-c>")', {silent = true, expr = true}},
