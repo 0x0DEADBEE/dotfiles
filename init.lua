@@ -1,5 +1,6 @@
 local lfs = require("lfs")
 require('packer').startup(function(use)
+    use "mrjones2014/smart-splits.nvim"
     use "ray-x/lsp_signature.nvim"
     use "hrsh7th/cmp-buffer"
     use "hrsh7th/nvim-cmp"
@@ -28,10 +29,11 @@ require("trouble").setup({
         other = "O",
     },
 }) --TODO refresh
-require("lsp_signature").setup({
+local lsp_signature= require("lsp_signature")
+lsp_signature.setup({
     floating_window_off_y = 0,
     floating_window_above_cur_line = true,
-    floating_window = true,
+    floating_window = false,
     fix_pos = true, -- do not auto-close floating window until I've entered all parameters
     hint_enable = false, -- do not show virtual text hint
     hint_prefix = "-> ", -- point at the current parameter, when it's present
@@ -39,6 +41,8 @@ require("lsp_signature").setup({
         border = "none",
     },
 })
+local smart_splits = require("smart-splits")
+smart_splits.setup({})
 local cmp = require("cmp") -- TODO event listening
 cmp.setup({
     mapping = {
@@ -197,8 +201,24 @@ function updateLSP(path, depth)
 end
 local all_filetypes = {"*.lua", "*.py", "*.c", "*.cpp", "*.h", "*.hpp", "*.go", "*.html"}
 
-function echoDoc() -- vim.api.nvim_buf_call(bufid, function)
-    vim.api.nvim_command(":normal! ggcG")
+local function isEmptyString(s)
+    return s == nil or s == ''
+end
+function echoSignature() -- vim.api.nvim_buf_call(bufid, function)
+    local sig = lsp_signature.status_line(200)
+    --sig.label = sig.label:gsub("[\n\r]+", " ")
+    --sig.hint = sig.hint:gsub("[\n\r]+", " ")
+    if not isEmptyString(sig.label:gsub("[\n\rs]+",  "")) and not isEmptyString(sig.hint:gsub("[\n\rs]+",  "")) then
+        -- TODO try and catch
+        if not pcall(function()
+            if not isEmptyString(sig.doc:gsub("[\n\rs]+",  "")) then
+                vim.api.nvim_buf_call(doc_buf_id, function() vim.api.nvim_command("normal! ggcG" .. sig.label .. sig.hint .. sig.doc) end)
+            else
+                vim.api.nvim_buf_call(doc_buf_id, function() vim.api.nvim_command("normal! ggcG" .. sig.label .. sig.hint) end)
+            end
+        end) then vim.api.nvim_buf_call(doc_buf_id, function() vim.api.nvim_command("normal! ggcG" .. sig.label .. sig.hint) end)
+        end
+    end
 end
 
 function echoDef(cmd)
@@ -283,7 +303,7 @@ local autocmds = { -- TOSEE https://stackoverflow.com/questions/3837933/autowrit
         vim.api.nvim_command(":e doc_win")
         doc_buf_id = vim.api.nvim_get_current_buf()
         doc_win_id = vim.api.nvim_get_current_win()
-        --print(doc_buf_id, doc_win_id)
+        smart_splits.resize_right(20)
     end}},
     {{"VimEnter"}, {pattern = all_filetypes, callback= function()
         vim.api.nvim_command("TagbarOpen fj")
@@ -293,8 +313,9 @@ local autocmds = { -- TOSEE https://stackoverflow.com/questions/3837933/autowrit
         def_buf_id = vim.api.nvim_get_current_buf()
         def_win_id = vim.api.nvim_get_current_win()
         vim.api.nvim_command("wincmd h")
-        --print(def_buf_id, def_win_id)
+        smart_splits.resize_left(12)
     end}},
+    {{"CursorHoldI"}, {pattern = all_filetypes, callback = function() echoSignature() end}},
     {{"CursorHoldI"}, {pattern = all_filetypes, command=":TagbarForceUpdate"}},
     {{"CursorHold"}, {pattern = all_filetypes, callback = function()
         currFilePath = vim.api.nvim_buf_get_name(0)
