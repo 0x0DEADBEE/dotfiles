@@ -195,7 +195,7 @@ function updateLSP(path, depth)
     end
     vim.cmd("NvimTreeRefresh")
 end
-local all_files = {"*.py", "*.lua"}
+local all_files = {"*.py", "*.lua"} -- all filetypes
 
 function echoDoc() -- vim.api.nvim_buf_call(bufid, function)
     vim.api.nvim_command(":normal! ggcG")
@@ -205,12 +205,12 @@ function echoDef(cmd)
     local currWin = vim.api.nvim_get_current_win()
     local currLine, currCol = unpack(vim.api.nvim_win_get_cursor(0))
     vim.api.nvim_set_current_win(def_win_id)
-    vim.api.nvim_command(":buffer ".. vim.api.nvim_buf_get_name(0))
+    vim.api.nvim_command(":buffer ".. currFilePath)
     vim.api.nvim_command("normal! zR")
     vim.api.nvim_command("normal! " .. currLine .. "G")
     vim.api.nvim_command("normal! 0")
     vim.api.nvim_command("normal! " .. currCol .. "l")
-    vim.api.nvim_command("normal! "..cmd)
+    vim.api.nvim_command("normal! " .. cmd)
     vim.api.nvim_command("set scrolloff=0")
     vim.api.nvim_command("normal! zt")
     vim.api.nvim_set_current_win(currWin)
@@ -218,12 +218,13 @@ end
 
 -- TODO indent mode
 local keymaps = { -- :h modes
-    {"n", "gy", vim.lsp.buf.type_definition, {}},
+    {"n", "gy", function()
+        echoDef("<space>D")
+    end, {}},
     {"n", "gr", vim.lsp.buf.references, {}},
     {"n", "gd", function()
         echoDef("gd")
     end, {}},
-    --{"n", "gd", vim.lsp.buf.definition, {}},
     {"n", "K", vim.lsp.buf.hover, {}},
     {"i", "<C-c>", 'copilot#Accept("<C-c>")', {silent = true, expr = true}},
     {"nv", "<c-w>", "<cmd>:lua require('nvim-window').pick()<CR>", {}},
@@ -261,6 +262,7 @@ def_buf_id = 0
 def_win_id = 0
 doc_buf_id = 0
 doc_win_id = 0
+currFilePath = ""
 -- TODO create a function which saves the buf id of the new window and run a command, and refresh all_buf_ids list, nvim_del_autocmd
 -- TODO as source buffer the doc_buf_id, catch exit event
 local autocmds = { -- TOSEE https://stackoverflow.com/questions/3837933/autowrite-when-changing-tab-in-vim
@@ -290,6 +292,9 @@ local autocmds = { -- TOSEE https://stackoverflow.com/questions/3837933/autowrit
         --print(def_buf_id, def_win_id)
     end}},
     {{"CursorHoldI"}, {pattern = all_files, command=":TagbarForceUpdate"}},
+    {{"CursorHold"}, {pattern = all_files, callback = function()
+        currFilePath = vim.api.nvim_buf_get_name(0)
+    end}},
 }
 for _, v in pairs(autocmds) do
     vim.api.nvim_create_autocmd(unpack(v))
