@@ -1,6 +1,5 @@
 local lfs = require("lfs")
 require('packer').startup(function(use)
-    use "c60cb859/bufMov.nvim"
     use "ray-x/lsp_signature.nvim"
     use "hrsh7th/cmp-buffer"
     use "hrsh7th/nvim-cmp"
@@ -214,7 +213,6 @@ function echoDef(cmd)
     vim.api.nvim_command(cmd)
     --vim.api.nvim_command("set scrolloff=0")
     --vim.api.nvim_command("normal! zt")
-    ----vim.api.nvim_command(":MoveBufferLeft")
     --vim.api.nvim_set_current_win(currWin)
 end
 
@@ -229,6 +227,10 @@ local keymaps = { -- :h modes
     end, {}},
     {"n", "K", vim.lsp.buf.hover, {}},
     {"i", "<C-c>", 'copilot#Accept("<C-c>")', {silent = true, expr = true}},
+    {"n", "<c-j>", "<c-w>j", {noremap=true}},
+    {"n", "<c-h>", "<c-w>h", {noremap=true}},
+    {"n", "<c-k>", "<c-w>k", {noremap=true}},
+    {"n", "<c-l>", "<c-w>l", {noremap=true}},
     {"nv", "<c-w>", "<cmd>:lua require('nvim-window').pick()<CR>", {}},
     {"nv", "<leader>p", '"+p', {noremap=true}}, --xclip?
     {"nv", "<leader>y", '"+y', {noremap=true}},
