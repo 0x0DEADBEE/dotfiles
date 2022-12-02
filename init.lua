@@ -1,6 +1,5 @@
 local lfs = require("lfs")
 require('packer').startup(function(use)
-    use "fhill2/floating.nvim"
     use "ray-x/lsp_signature.nvim"
     use "hrsh7th/cmp-buffer"
     use "hrsh7th/nvim-cmp"
@@ -31,8 +30,8 @@ require("trouble").setup({
 }) --TODO refresh
 require("lsp_signature").setup({
     floating_window_off_y = 0,
+    floating_window_above_cur_line = true,
     floating_window = true,
-    -- floating_window_above_cur_line = true,
     fix_pos = true, -- do not auto-close floating window until I've entered all parameters
     hint_enable = false, -- do not show virtual text hint
     hint_prefix = "-> ", -- point at the current parameter, when it's present
@@ -88,7 +87,7 @@ cmp.setup({
     },
 })
 local lspconfig = require("lspconfig")
-local servers = {"sumneko_lua", "pyright"}
+local servers = {"sumneko_lua", "pyright", "clangd"}
 for _, v in pairs(servers) do
     lspconfig[v].setup({
         capabilities = vim.tbl_extend("force", lspconfig.util.default_config.capabilities, require("cmp_nvim_lsp").default_capabilities()),
@@ -227,11 +226,29 @@ function updateLSP(path, depth)
     vim.cmd("NvimTreeRefresh")
 end
 local all_files = {"*.py", "*.lua"}
+function echoDoc() -- vim.api.nvim_buf_call(bufid, function)
+    vim.api.nvim_command(":normal! ggcG")
+end
+
+
+local all_buf_ids = vim.api.nvim_list_bufs()
+doc_buf_id = 0
+doc_win_id = 0
+-- TODO create a function which saves the buf id of the new window and run a command, and refresh all_buf_ids list, nvim_del_autocmd
 local autocmds = { -- TOSEE https://stackoverflow.com/questions/3837933/autowrite-when-changing-tab-in-vim
-    -- TODO check if NvimTree window is alone then quit. echoDocInWin
+    -- TODO check if NvimTree window is alone then quit. 
     {{"TabNew"}, {pattern = all_files, command=":TagbarOpen"}},
     {{"TabNew"}, {pattern = "*", command=":NvimTreeOpen"}},
-    {{"VimEnter"}, {pattern =  all_files, command=":NvimTreeOpen"}},
+    --{{"VimEnter"}, {pattern =  all_files, command=":NvimTreeOpen"}},
+    {{"VimEnter"}, {pattern =  all_files, callback= function()
+        vim.api.nvim_command(":NvimTreeFocus")
+        vim.cmd.split()
+        vim.api.nvim_command(":wincmd j")
+        vim.api.nvim_command(":e blank")
+        doc_buf_id = vim.api.nvim_get_current_buf()
+        doc_win_id = vim.api.nvim_get_current_win()
+        print(doc_buf_id, doc_win_id)
+    end}},
     {{"VimEnter"}, {pattern = all_files, command=":TagbarOpen"}},
     {{"CursorHoldI"}, {pattern = all_files, command=":TagbarForceUpdate"}},
 }
