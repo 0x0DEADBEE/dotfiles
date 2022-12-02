@@ -182,6 +182,10 @@ local function smartIndent()
 end
 -- TODO indent mode
 local keymaps = { -- :h modes
+    {"n", "gy", vim.lsp.buf.type_definition, {}},
+    {"n", "gr", vim.lsp.buf.references, {}},
+    {"n", "gd", vim.lsp.buf.definition, {}},
+    {"n", "K", vim.lsp.buf.hover, {}},
     {"i", "<C-c>", 'copilot#Accept("<C-c>")', {silent = true, expr = true}},
     {"nv", "<c-w>", "<cmd>:lua require('nvim-window').pick()<CR>", {}},
     {"nv", "<leader>p", '"+p', {noremap=true}}, --xclip?
@@ -235,6 +239,7 @@ local all_buf_ids = vim.api.nvim_list_bufs()
 doc_buf_id = 0
 doc_win_id = 0
 -- TODO create a function which saves the buf id of the new window and run a command, and refresh all_buf_ids list, nvim_del_autocmd
+-- TODO as source buffer the doc_buf_id, catch exit event
 local autocmds = { -- TOSEE https://stackoverflow.com/questions/3837933/autowrite-when-changing-tab-in-vim
     -- TODO check if NvimTree window is alone then quit. 
     {{"TabNew"}, {pattern = all_files, command=":TagbarOpen"}},
