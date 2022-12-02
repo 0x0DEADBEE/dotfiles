@@ -1,5 +1,7 @@
 local lfs = require("lfs")
 require('packer').startup(function(use)
+    use "fhill2/floating.nvim"
+    use "ray-x/lsp_signature.nvim"
     use "hrsh7th/cmp-buffer"
     use "hrsh7th/nvim-cmp"
     use "hrsh7th/cmp-nvim-lsp"
@@ -16,7 +18,7 @@ require('packer').startup(function(use)
 end)
 require("trouble").setup({
     icons = false,
-    fold_open = "",
+    fold_open = "", --icons
     fold_closed = "",
     indent_lines = true,
     signs = {
@@ -27,6 +29,17 @@ require("trouble").setup({
         other = "O",
     },
 }) --TODO refresh
+require("lsp_signature").setup({
+    floating_window_off_y = 0,
+    floating_window = true,
+    -- floating_window_above_cur_line = true,
+    fix_pos = true, -- do not auto-close floating window until I've entered all parameters
+    hint_enable = false, -- do not show virtual text hint
+    hint_prefix = "-> ", -- point at the current parameter, when it's present
+    handler_opts = {
+        border = "none",
+    },
+})
 local cmp = require("cmp") -- TODO event listening
 cmp.setup({
     mapping = {
@@ -143,7 +156,7 @@ end
 local globals = {
     tagbar_show_linenumbers = 2, -- show relative line numbers in tagbar window
     copilot_no_tab_map = true,
-    tagbar_show_tag_linenumbers = 1, -- show absolute line number of tag in the code
+    tagbar_show_tag_linenumbers = 1, -- show in which line the tag is in the code
     tagbar_show_visibility = 1, -- show whether a tag is Publ, Priv or Prot
     tagbar_visibility_symbols = {
         public = "PUBL ",
@@ -215,7 +228,7 @@ function updateLSP(path, depth)
 end
 local all_files = {"*.py", "*.lua"}
 local autocmds = { -- TOSEE https://stackoverflow.com/questions/3837933/autowrite-when-changing-tab-in-vim
-    -- TODO check if NvimTree window is alone then quit
+    -- TODO check if NvimTree window is alone then quit. echoDocInWin
     {{"TabNew"}, {pattern = all_files, command=":TagbarOpen"}},
     {{"TabNew"}, {pattern = "*", command=":NvimTreeOpen"}},
     {{"VimEnter"}, {pattern =  all_files, command=":NvimTreeOpen"}},
