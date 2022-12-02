@@ -195,7 +195,7 @@ function updateLSP(path, depth)
     end
     vim.cmd("NvimTreeRefresh")
 end
-local all_files = {"*.py", "*.lua"} -- all filetypes
+local all_filetypes = {"*.lua", "*.py", "*.c", "*.cpp", "*.h", "*.hpp", "*.go", "*.html"}
 
 function echoDoc() -- vim.api.nvim_buf_call(bufid, function)
     vim.api.nvim_command(":normal! ggcG")
@@ -267,12 +267,12 @@ currFilePath = ""
 -- TODO as source buffer the doc_buf_id, catch exit event
 local autocmds = { -- TOSEE https://stackoverflow.com/questions/3837933/autowrite-when-changing-tab-in-vim
     -- TODO check if NvimTree window is alone then quit. 
-    {{"TabNew"}, {pattern = all_files, callback= function()
+    {{"TabNew"}, {pattern = all_filetypes, callback= function()
         vim.api.nvim_command("TagbarOpen")
     end}},
     {{"TabNew"}, {pattern = "*", command=":NvimTreeOpen"}},
-    --{{"VimEnter"}, {pattern =  all_files, command=":NvimTreeOpen"}},
-    {{"VimEnter"}, {pattern =  all_files, callback= function()
+    --{{"VimEnter"}, {pattern =  all_filetypes, command=":NvimTreeOpen"}},
+    {{"VimEnter"}, {pattern =  all_filetypes, callback= function()
         vim.api.nvim_command(":NvimTreeFocus")
         vim.cmd.split()
         vim.api.nvim_command(":wincmd j")
@@ -281,7 +281,7 @@ local autocmds = { -- TOSEE https://stackoverflow.com/questions/3837933/autowrit
         doc_win_id = vim.api.nvim_get_current_win()
         --print(doc_buf_id, doc_win_id)
     end}},
-    {{"VimEnter"}, {pattern = all_files, callback= function()
+    {{"VimEnter"}, {pattern = all_filetypes, callback= function()
         vim.api.nvim_command("TagbarOpen fj")
         vim.cmd.split()
         vim.api.nvim_command(":wincmd j")
@@ -291,8 +291,8 @@ local autocmds = { -- TOSEE https://stackoverflow.com/questions/3837933/autowrit
         vim.api.nvim_command("wincmd h")
         --print(def_buf_id, def_win_id)
     end}},
-    {{"CursorHoldI"}, {pattern = all_files, command=":TagbarForceUpdate"}},
-    {{"CursorHold"}, {pattern = all_files, callback = function()
+    {{"CursorHoldI"}, {pattern = all_filetypes, command=":TagbarForceUpdate"}},
+    {{"CursorHold"}, {pattern = all_filetypes, callback = function()
         currFilePath = vim.api.nvim_buf_get_name(0)
     end}},
 }
