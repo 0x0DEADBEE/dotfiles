@@ -1,5 +1,7 @@
 local lfs = require("lfs")
 require('packer').startup(function(use)
+    use "L3MON4D3/LuaSnip"
+    use "windwp/nvim-autopairs"
     use "mrjones2014/smart-splits.nvim"
     use "ray-x/lsp_signature.nvim"
     use "hrsh7th/cmp-buffer"
@@ -36,7 +38,7 @@ lsp_signature.setup({
     floating_window = false,
     fix_pos = true, -- do not auto-close floating window until I've entered all parameters
     hint_enable = false, -- do not show virtual text hint
-    hint_prefix = "-> ", -- point at the current parameter, when it's present
+    hint_prefix = "", -- point at the current parameter, when it's present
     handler_opts = {
         border = "none",
     },
@@ -45,6 +47,11 @@ local smart_splits = require("smart-splits")
 smart_splits.setup({})
 local cmp = require("cmp") -- TODO event listening
 cmp.setup({
+    snippet = {
+        expand = function(expansionParams)
+            require("luasnip").lsp_expand(expansionParams.body)
+        end,
+    },
     mapping = {
         ["<Tab>"] = function(fallback)
             if cmp.visible() then
@@ -90,6 +97,12 @@ cmp.setup({
         {name = "buffer"},
     },
 })
+require("nvim-autopairs").setup({})
+local cmp_autopairs = require('nvim-autopairs.completion.cmp')
+cmp.event:on(
+    "confirm_done",
+    cmp_autopairs.on_confirm_done()
+)
 local lspconfig = require("lspconfig")
 local servers = {"sumneko_lua", "pyright", "clangd", "gopls"}
 for _, v in pairs(servers) do
@@ -99,7 +112,7 @@ for _, v in pairs(servers) do
 end
 require("mason").setup()
 require("nvim-treesitter.configs").setup({
-    ensure_installed = {"lua", "python"}, --parsers
+    ensure_installed = {"lua", "python", "c", "cpp", "go"}, --parsers
     indent = {enable = true},
     --highlight = {enable = true}, --"I get query error: invalid node type at position" paragraph. Syntax highlighting 
 })
@@ -132,6 +145,7 @@ require("nvim-tree").setup({
 })
 -- config centered on github copilot
 local options = { -- TODO negative scrolloff
+    linebreak = true, -- The line will NOT be broken in the middle of a word if it is longer than the width of the window  (:h wrap)
     cursorline = true,
     cursorlineopt = "screenline",
     filetype = "on", --turned on filetype detection
@@ -170,7 +184,39 @@ local globals = {
 for k, v in pairs(globals) do
     vim.g[k] = v
 end
-local speed_coding = {"q", "w", "qa", "wa", "q!", "w!", "qa!", "wa!"} -- TODO define commands
+local speed_coding_cmds = {"q", "w", "qa", "wa"} -- TODO define commands
+--create a list such that input = {"ab"} output = {"AB", "Ab", "aB", "ab"}
+local function speed_coding_mistakes(input)
+    local output = {}
+    for i = 1, 2 ^ #input do
+        local s = ""
+        for j = 1, #input do
+            if i % (2 ^ j) >= 2 ^ (j - 1) then
+                s = s .. input:sub(j, j):upper()
+            else
+                s = s .. input:sub(j, j):lower()
+            end
+        end
+        table.insert(output, s)
+    end
+    --remove all elements that don't have a capital letter as the first letter
+    local j = 1
+    for i = 1, #output do
+        if output[i]:sub(1, 1):match("%u") then
+            output[j] = output[i]
+            j = j + 1
+        end
+    end
+    for i = j, #output do
+        output[i] = nil
+    end
+    return output
+end
+for _, v in pairs(speed_coding_cmds) do
+    for _, w in pairs(speed_coding_mistakes(v)) do
+        vim.cmd("command! " .. w .. " " .. v)
+    end
+end
 -- partiallly accept GitHub copilot suggestion, word by word.
 local function partiallyAccept()
     local _ = vim.fn['copilot#Accept']("")
@@ -185,6 +231,20 @@ local function smartIndent()
     vim.api.nvim_command("normal! " .. currLine .. "G")
 end
 
+--get how many duplicates there are in a list
+function getNumberOfDuplicates(list)
+    local duplicates = {}
+    for i = 1, #list do
+        local v = list[i]
+        if duplicates[v] then
+            duplicates[v] = duplicates[v] + 1
+        else
+            duplicates[v] = 1
+        end
+    end
+    --return how many numbers are greater or equal than 2 in the list of duplicates
+    return #vim.tbl_filter(function(v) return v >= 2 end, duplicates)
+end
 
 function updateLSP(path, depth)
     if depth == 0 then
@@ -206,17 +266,17 @@ local function isEmptyString(s)
 end
 function echoSignature() -- vim.api.nvim_buf_call(bufid, function)
     local sig = lsp_signature.status_line(200)
-    --sig.label = sig.label:gsub("[\n\r]+", " ")
-    --sig.hint = sig.hint:gsub("[\n\r]+", " ")
+    sig.label = sig.label:gsub("[\n\r]+", " ")
+    sig.hint = sig.hint:gsub("[\n\r]+", " ")
     if not isEmptyString(sig.label:gsub("[\n\rs]+",  "")) and not isEmptyString(sig.hint:gsub("[\n\rs]+",  "")) then
         -- TODO try and catch
         if not pcall(function()
             if not isEmptyString(sig.doc:gsub("[\n\rs]+",  "")) then
-                vim.api.nvim_buf_call(doc_buf_id, function() vim.api.nvim_command("normal! ggcG" .. sig.label .. sig.hint .. sig.doc) end)
+                vim.api.nvim_buf_call(doc_buf_id, function() vim.api.nvim_command("normal ggcG" .. sig.label:gsub(sig.hint, sig.hint:upper()) .. "\n" .. sig.doc) end)
             else
-                vim.api.nvim_buf_call(doc_buf_id, function() vim.api.nvim_command("normal! ggcG" .. sig.label .. sig.hint) end)
+                vim.api.nvim_buf_call(doc_buf_id, function() vim.api.nvim_command("normal ggcG" .. sig.label:gsub(sig.hint, sig.hint:upper())) end)
             end
-        end) then vim.api.nvim_buf_call(doc_buf_id, function() vim.api.nvim_command("normal! ggcG" .. sig.label .. sig.hint) end)
+        end) then vim.api.nvim_buf_call(doc_buf_id, function() vim.api.nvim_command("normal ggcG" .. sig.label:gsub(sig.hint, sig.hint:upper())) end)
         end
     end
 end
@@ -231,8 +291,8 @@ function echoDef(cmd)
     vim.api.nvim_command("normal! 0")
     vim.api.nvim_command("normal! " .. currCol .. "l")
     vim.api.nvim_command(cmd)
-    --vim.api.nvim_command("set scrolloff=0")
-    --vim.api.nvim_command("normal! zt")
+    vim.api.nvim_command("set scrolloff=0") --UNCOMMENTED!
+    vim.api.nvim_command("normal! zt")
     --vim.api.nvim_set_current_win(currWin)
 end
 
@@ -247,6 +307,12 @@ local keymaps = { -- :h modes
     end, {}},
     {"n", "K", vim.lsp.buf.hover, {}},
     {"i", "<C-c>", 'copilot#Accept("<C-c>")', {silent = true, expr = true}},
+    {"n", "<c-q>", function()
+        vim.api.nvim_set_current_win(doc_win_id)
+        vim.api.nvim_command(":q!")
+        vim.api.nvim_command(":!rm -rf doc_win")
+        vim.api.nvim_command(":qa")
+    end, {noremap=true}},
     {"n", "<c-j>", "<c-w>j", {noremap=true}},
     {"n", "<c-h>", "<c-w>h", {noremap=true}},
     {"n", "<c-k>", "<c-w>k", {noremap=true}},
@@ -258,6 +324,9 @@ local keymaps = { -- :h modes
     {"nv", "d", '"_d', {noremap=true}},
     {"nv", "x", '"_x', {noremap=true}},
     {"i", "<c-l>", partiallyAccept, {expr=true}},
+    --{"n", "<c-y>", function ()
+    --    print(vim.inspect(create_list("ab!")))
+    --end, {}},
     {"n", "<c-f>", smartIndent, {}},
     {"n", "<c-d>", function()
         updateLSP(lfs.currentdir(), 1)
@@ -281,7 +350,7 @@ for _, v in pairs(keymaps) do
     keymap(unpack(v))
 end
 
-local all_buf_ids = vim.api.nvim_list_bufs()
+local all_buf_names = {} --vim.api.nvim_list_bufs()
 def_buf_id = 0
 def_win_id = 0
 doc_buf_id = 0
@@ -303,7 +372,7 @@ local autocmds = { -- TOSEE https://stackoverflow.com/questions/3837933/autowrit
         vim.api.nvim_command(":e doc_win")
         doc_buf_id = vim.api.nvim_get_current_buf()
         doc_win_id = vim.api.nvim_get_current_win()
-        smart_splits.resize_right(20)
+        smart_splits.resize_right(25)
     end}},
     {{"VimEnter"}, {pattern = all_filetypes, callback= function()
         vim.api.nvim_command("TagbarOpen fj")
@@ -313,7 +382,11 @@ local autocmds = { -- TOSEE https://stackoverflow.com/questions/3837933/autowrit
         def_buf_id = vim.api.nvim_get_current_buf()
         def_win_id = vim.api.nvim_get_current_win()
         vim.api.nvim_command("wincmd h")
-        smart_splits.resize_left(12)
+        smart_splits.resize_left(25)
+    end}},
+    {{"BufEnter"}, {pattern = all_filetypes, callback = function()
+        --append to all_buf_names the name of the just opened buffer
+        table.insert(all_buf_names, vim.api.nvim_buf_get_name(0))
     end}},
     {{"CursorHoldI"}, {pattern = all_filetypes, callback = function() echoSignature() end}},
     {{"CursorHoldI"}, {pattern = all_filetypes, command=":TagbarForceUpdate"}},
